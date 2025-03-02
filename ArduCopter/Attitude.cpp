@@ -1,7 +1,4 @@
 #include "Copter.h"
-#include <cstdlib>  // For rand() function
-#include <cmath>    // For mathematical oper
-
 
 /*************************************************************
  *  Attitude Rate controllers and timing
@@ -10,7 +7,6 @@
 /*
   update rate controller when run from main thread (normal operation)
 */
-/*
 void Copter::run_rate_controller_main()
 {
     // set attitude and position controller loop time
@@ -23,34 +19,6 @@ void Copter::run_rate_controller_main()
         // only run the rate controller if we are not using the rate thread
         attitude_control->rate_controller_run();
     }
-    // reset sysid and other temporary inputs
-    attitude_control->rate_controller_target_reset();
-}
-*/
-
-void Copter::run_rate_controller_main()
-{
-    // set attitude and position controller loop time
-    const float last_loop_time_s = AP::scheduler().get_last_loop_time_s();
-    pos_control->set_dt(last_loop_time_s);
-    attitude_control->set_dt(last_loop_time_s);
-
-    if (!using_rate_thread) {
-        motors->set_dt(last_loop_time_s);
-
-        // Introducing random noise for erratic movements
-        float noise_factor = 0.005f; // Small noise value for subtle shakiness
-        float roll_noise = noise_factor * ((rand() % 200 - 100) / 100.0f); // Random value between -0.005 and 0.005
-        float pitch_noise = noise_factor * ((rand() % 200 - 100) / 100.0f);
-        float yaw_noise = noise_factor * ((rand() % 200 - 100) / 100.0f);
-
-        // Apply noise to attitude control
-        attitude_control->rate_controller_add_noise(roll_noise, pitch_noise, yaw_noise);
-
-        // Run the rate controller
-        attitude_control->rate_controller_run();
-    }
-
     // reset sysid and other temporary inputs
     attitude_control->rate_controller_target_reset();
 }
