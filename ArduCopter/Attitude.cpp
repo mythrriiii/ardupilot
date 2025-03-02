@@ -19,16 +19,48 @@ void Copter::run_rate_controller_main()
         // only run the rate controller if we are not using the rate thread
         attitude_control->rate_controller_run();
     }
+
+    // Apply erratic behavior modifications
+    modify_rate_controller_for_erratic_behavior();
+
+    // Inject gyro noise
+    inject_gyro_noise();
+
     // reset sysid and other temporary inputs
     attitude_control->rate_controller_target_reset();
 }
 
 /*************************************************************
- *  throttle control
+ *  Erratic Behavior Functions (Only in Attitude.cpp)
+ ****************************************************************/
+
+// Inject artificial noise into gyro readings
+static void inject_gyro_noise()
+{
+    float gyro_noise = (rand() % 20 - 10) * 0.01f;  // Random noise (-0.1 to +0.1)
+    copter.ahrs.gyro.x += gyro_noise;
+    copter.ahrs.gyro.y += gyro_noise;
+    copter.ahrs.gyro.z += gyro_noise;
+}
+
+// Modify rate controller to introduce oscillations
+static void modify_rate_controller_for_erratic_behavior()
+{
+    copter.attitude_control->get_rate_roll_pid().kP() *= 2.5;  // Increase roll P-gain (more oscillations)
+    copter.attitude_control->get_rate_pitch_pid().kP() *= 2.5; // Increase pitch P-gain
+    copter.attitude_control->get_rate_yaw_pid().kP() *= 2.5;   // Increase yaw P-gain
+
+    copter.attitude_control->get_rate_roll_pid().kD() *= 0.3;  // Reduce damping (D-gain)
+    copter.attitude_control->get_rate_pitch_pid().kD() *= 0.3;
+    copter.attitude_control->get_rate_yaw_pid().kD() *= 0.3;
+}
+
+/*************************************************************
+ *  Throttle Control
  ****************************************************************/
 
 // update estimated throttle required to hover (if necessary)
-//  called at 100hz
+// called at 100hz
 void Copter::update_throttle_hover()
 {
     // if not armed or landed or on standby then exit
@@ -48,6 +80,12 @@ void Copter::update_throttle_hover()
 
     // get throttle output
     float throttle = motors->get_throttle();
+
+    // Introduce random fluctuations in throttle (erratic altitude control)
+    float throttle_noise = (rand() % 10 - 5) * 0.01f;  // Random noise (-0.05 to +0.05)
+    throttle += throttle_noise;
+    throttle = constrain_float(throttle, 0.0f, 1.0f);
+    motors->set_throttle(throttle);
 
     // calc average throttle if we are in a level hover.  accounts for heli hover roll trim
     if (throttle > 0.0f && fabsf(inertial_nav.get_velocity_z_up_cms()) < 60 &&
