@@ -1,24 +1,54 @@
 #include "Copter.h"
-#include <cstdlib>  // for rand()
-#include <cmath>    // for fmod()
+#include <cstdlib>  // For rand() function
+#include <cmath>    // For mathematical oper
+
 
 /*************************************************************
  *  Attitude Rate controllers and timing
- *************************************************************/
+ ****************************************************************/
+
+/*
+  update rate controller when run from main thread (normal operation)
+*/
+/*
 void Copter::run_rate_controller_main()
 {
+    // set attitude and position controller loop time
+    const float last_loop_time_s = AP::scheduler().get_last_loop_time_s();
+    pos_control->set_dt(last_loop_time_s);
+    attitude_control->set_dt(last_loop_time_s);
+
+    if (!using_rate_thread) {
+        motors->set_dt(last_loop_time_s);
+        // only run the rate controller if we are not using the rate thread
+        attitude_control->rate_controller_run();
+    }
+    // reset sysid and other temporary inputs
+    attitude_control->rate_controller_target_reset();
+}
+*/
+
+void Copter::run_rate_controller_main()
+{
+    // set attitude and position controller loop time
+    const float last_loop_time_s = AP::scheduler().get_last_loop_time_s();
+    pos_control->set_dt(last_loop_time_s);
+    attitude_control->set_dt(last_loop_time_s);
+
     if (!using_rate_thread) {
         motors->set_dt(last_loop_time_s);
 
-        // Introduce noise into the attitude control to create shaking
-        float noise_factor = 0.02; // Small noise factor to prevent complete instability
-        float random_noise = ((float(rand()) / float(RAND_MAX)) * 2 - 1) * noise_factor; // Generates noise between -0.02 to 0.02
+        // Introducing random noise for erratic movements
+        float noise_factor = 0.005f; // Small noise value for subtle shakiness
+        float roll_noise = noise_factor * ((rand() % 200 - 100) / 100.0f); // Random value between -0.005 and 0.005
+        float pitch_noise = noise_factor * ((rand() % 200 - 100) / 100.0f);
+        float yaw_noise = noise_factor * ((rand() % 200 - 100) / 100.0f);
 
-        // Apply noise to rate controller
+        // Apply noise to attitude control
+        attitude_control->rate_controller_add_noise(roll_noise, pitch_noise, yaw_noise);
+
+        // Run the rate controller
         attitude_control->rate_controller_run();
-        attitude_control->set_roll_target(attitude_control->get_roll_target() + random_noise);
-        attitude_control->set_pitch_target(attitude_control->get_pitch_target() + random_noise);
-        attitude_control->set_yaw_target(attitude_control->get_yaw_target() + random_noise);
     }
 
     // reset sysid and other temporary inputs
@@ -26,8 +56,11 @@ void Copter::run_rate_controller_main()
 }
 
 /*************************************************************
- *  Throttle Control - Adding Minor Variations
- *************************************************************/
+ *  throttle control
+ ****************************************************************/
+
+// update estimated throttle required to hover (if necessary)
+//  called at 100hz
 void Copter::update_throttle_hover()
 {
     // if not armed or landed or on standby then exit
@@ -40,15 +73,24 @@ void Copter::update_throttle_hover()
         return;
     }
 
-    // Introduce minor variations in throttle for shaking effect
-    float throttle_noise_factor = 0.01; // Small variation in throttle
-    float throttle_noise = ((float(rand()) / float(RAND_MAX)) * 2 - 1) * throttle_noise_factor; 
+    // do not update while climbing or descending
+    if (!is_zero(pos_control->get_vel_desired_cms().z)) {
+        return;
+    }
 
-    // Apply noise to throttle hover value
-    throttle_hover += throttle_noise;
+    // get throttle output
+    float throttle = motors->get_throttle();
+
+    // calc average throttle if we are in a level hover.  accounts for heli hover roll trim
+    if (throttle > 0.0f && fabsf(inertial_nav.get_velocity_z_up_cms()) < 60 &&
+        fabsf(ahrs.roll_sensor-attitude_control->get_roll_trim_cd()) < 500 && labs(ahrs.pitch_sensor) < 500) {
+        // Can we set the time constant automatically
+        motors->update_throttle_hover(0.01f);
+#if HAL_GYROFFT_ENABLED
+        gyro_fft.update_freq_hover(0.01f, motors->get_throttle_out());
+#endif
+    }
 }
-
-
 
 // get_pilot_desired_climb_rate - transform pilot's throttle input to climb rate in cm/s
 // without any deadzone at the bottom
@@ -58,7 +100,7 @@ float Copter::get_pilot_desired_climb_rate(float throttle_control)
     if (failsafe.radio || !rc().has_ever_seen_rc_input()) {
         return 0.0f;
     }
- 
+
 #if TOY_MODE_ENABLED
     if (g2.toy_mode.enabled()) {
         // allow throttle to be reduced after throttle arming and for
@@ -66,18 +108,18 @@ float Copter::get_pilot_desired_climb_rate(float throttle_control)
         g2.toy_mode.throttle_adjust(throttle_control);
     }
 #endif
- 
+
     // ensure a reasonable throttle value
     throttle_control = constrain_float(throttle_control,0.0f,1000.0f);
- 
+
     // ensure a reasonable deadzone
     g.throttle_deadzone.set(constrain_int16(g.throttle_deadzone, 0, 400));
- 
+
     float desired_rate = 0.0f;
     const float mid_stick = get_throttle_mid();
     const float deadband_top = mid_stick + g.throttle_deadzone;
     const float deadband_bottom = mid_stick - g.throttle_deadzone;
- 
+
     // check throttle is above, below or in the deadband
     if (throttle_control < deadband_bottom) {
         // below the deadband
@@ -89,16 +131,16 @@ float Copter::get_pilot_desired_climb_rate(float throttle_control)
         // must be in the deadband
         desired_rate = 0.0f;
     }
- 
+
     return desired_rate;
 }
- 
+
 // get_non_takeoff_throttle - a throttle somewhere between min and mid throttle which should not lead to a takeoff
 float Copter::get_non_takeoff_throttle()
 {
     return MAX(0,motors->get_throttle_hover()/2.0f);
 }
- 
+
 // set_accel_throttle_I_from_pilot_throttle - smoothes transition from pilot controlled throttle to autopilot throttle
 void Copter::set_accel_throttle_I_from_pilot_throttle()
 {
@@ -107,7 +149,7 @@ void Copter::set_accel_throttle_I_from_pilot_throttle()
     // shift difference between pilot's throttle and hover throttle into accelerometer I
     pos_control->get_accel_z_pid().set_integrator((pilot_throttle-motors->get_throttle_hover()) * 1000.0f);
 }
- 
+
 // rotate vector from vehicle's perspective to North-East frame
 void Copter::rotate_body_frame_to_NE(float &x, float &y)
 {
@@ -116,7 +158,7 @@ void Copter::rotate_body_frame_to_NE(float &x, float &y)
     x = ne_x;
     y = ne_y;
 }
- 
+
 // It will return the PILOT_SPEED_DN value if non zero, otherwise if zero it returns the PILOT_SPEED_UP value.
 uint16_t Copter::get_pilot_speed_dn() const
 {
