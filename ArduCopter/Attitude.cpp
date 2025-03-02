@@ -5,7 +5,7 @@
 /*************************************************************
  *  Attitude Rate controllers and timing
  *************************************************************/
-void Copter::update_rate_controllers()
+void Copter::run_rate_controller_main()
 {
     if (!using_rate_thread) {
         motors->set_dt(last_loop_time_s);
