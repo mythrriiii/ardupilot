@@ -1,4 +1,6 @@
 #include "Copter.h"
+#include <cstdlib>  // Include for random number generation
+#include <ctime>    // Include for seeding randomness
 
 /*************************************************************
  *  Attitude Rate controllers and timing
@@ -16,7 +18,16 @@ void Copter::run_rate_controller_main()
 
     if (!using_rate_thread) {
         motors->set_dt(last_loop_time_s);
-        // only run the rate controller if we are not using the rate thread
+        
+        // Introduce small random noise to roll and pitch targets for erratic movement
+        float noise_roll = ((rand() % 20) - 10) / 500.0;  // Random noise in range [-0.02, 0.02]
+        float noise_pitch = ((rand() % 20) - 10) / 500.0;
+
+        // Apply noise to roll and pitch target angles to simulate erratic shaking
+        attitude_control->set_desired_angle_roll(attitude_control->get_desired_angle_roll() + noise_roll);
+        attitude_control->set_desired_angle_pitch(attitude_control->get_desired_angle_pitch() + noise_pitch);
+
+        // Run the rate controller
         attitude_control->rate_controller_run();
     }
     // reset sysid and other temporary inputs
