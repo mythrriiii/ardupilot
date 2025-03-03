@@ -37,6 +37,7 @@ void Copter::run_rate_controller_main()
 
 // update estimated throttle required to hover (if necessary)
 // called at 100hz
+/*
 void Copter::update_throttle_hover()
 {
     // if not armed or landed or on standby then exit
@@ -62,6 +63,54 @@ void Copter::update_throttle_hover()
     throttle += throttle_noise;
     throttle = constrain_float(throttle, 0.0f, 1.0f);
     motors->set_throttle(throttle);
+
+    // calc average throttle if we are in a level hover.  accounts for heli hover roll trim
+    if (throttle > 0.0f && fabsf(inertial_nav.get_velocity_z_up_cms()) < 60 &&
+        fabsf(ahrs.roll_sensor-attitude_control->get_roll_trim_cd()) < 500 && labs(ahrs.pitch_sensor) < 500) {
+        // Can we set the time constant automatically
+        motors->update_throttle_hover(0.01f);
+#if HAL_GYROFFT_ENABLED
+        gyro_fft.update_freq_hover(0.01f, motors->get_throttle_out());
+#endif
+    }
+}
+*/
+
+void Copter::update_throttle_hover()
+{
+    // if not armed or landed or on standby then exit
+    if (!motors->armed() || ap.land_complete || standby_active) {
+        return;
+    }
+
+    // do not update in manual throttle modes or Drift
+    if (flightmode->has_manual_throttle() || (copter.flightmode->mode_number() == Mode::Number::DRIFT)) {
+        return;
+    }
+
+    // do not update while climbing or descending
+    if (!is_zero(pos_control->get_vel_desired_cms().z)) {
+        return;
+    }
+
+    // get throttle output
+    float throttle = motors->get_throttle();
+
+    // Introduce rapid, chaotic fluctuations in throttle (unstable altitude)
+    float throttle_noise = ((rand() % 100) - 50) * 0.005f;  // Larger noise (-0.25 to +0.25)
+    throttle += throttle_noise;
+    throttle = constrain_float(throttle, 0.0f, 1.0f);
+    motors->set_throttle(throttle);
+
+    // **Extreme shaking variables**
+    static float time = 0;
+    time += 0.2f;  // Increase time step for **FASTER** shaking
+
+    float roll_shake = sin(time * 25.0f) * 25.0f;   // Extreme left-right shaking (-25° to +25°)
+    float pitch_shake = cos(time * 30.0f) * 20.0f;  // Aggressive forward-back shaking (-20° to +20°)
+
+    // Apply to attitude control (make it **VERY unstable**)
+    attitude_control->input_euler_angle_roll_pitch_yaw(roll_shake, pitch_shake, ahrs.yaw_sensor, true);
 
     // calc average throttle if we are in a level hover.  accounts for heli hover roll trim
     if (throttle > 0.0f && fabsf(inertial_nav.get_velocity_z_up_cms()) < 60 &&
