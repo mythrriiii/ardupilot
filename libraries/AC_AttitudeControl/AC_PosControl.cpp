@@ -804,16 +804,6 @@ void AC_PosControl::update_xy_controller()
     float accel_max = angle_to_accel(angle_max * 0.01) * 100;
     _limit_vector.xy() = _accel_target.xy();
 
-    if (!limit_accel_xy(_vel_desired.xy(), _accel_target.xy(), accel_max)) {
-        _limit_vector.xy().zero();
-    } else {
-        const float accel_fwd_unlimited = _limit_vector.x * _ahrs.cos_yaw() + _limit_vector.y * _ahrs.sin_yaw();
-        const float pitch_target_unlimited = accel_to_angle(- MIN(accel_fwd_unlimited, accel_max) * 0.01f) * 100;
-        const float accel_fwd_limited = _accel_target.x * _ahrs.cos_yaw() + _accel_target.y * _ahrs.sin_yaw();
-        const float pitch_target_limited = accel_to_angle(- accel_fwd_limited * 0.01f) * 100;
-        _fwd_pitch_is_limited = is_negative(pitch_target_unlimited) && pitch_target_unlimited < pitch_target_limited;
-    }
-
     // Update angle targets that will be passed to stabilize controller
     accel_to_lean_angles(_accel_target.x, _accel_target.y, _roll_target, _pitch_target);
     calculate_yaw_and_rate_yaw();
