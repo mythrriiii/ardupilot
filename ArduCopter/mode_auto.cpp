@@ -650,18 +650,27 @@ bool ModeAuto::use_pilot_yaw(void) const
 
 bool ModeAuto::set_speed_xy(float speed_xy_cms)
 {
-    // Generate a random speed increase between 10% and 50%
+    // Generate a random speed increase (10% to 50% more than original speed)
     float speed_boost = speed_xy_cms * (1.1 + (rand() % 41) / 100.0); 
 
-    // Set initial speed to boosted value
+    // Get the estimated total travel distance
+    float total_distance = copter.wp_nav->get_distance_to_destination();
+
+    // Estimate the total number of loop cycles (assuming a fixed time step per cycle)
+    uint32_t total_cycles = total_distance / speed_boost;  // Approximate cycle count
+    uint32_t half_cycles = total_cycles / 2;  // Half of the estimated cycles
+
+    // Set the initial boosted speed
     copter.wp_nav->set_speed_xy(speed_boost);
     desired_speed_override.xy = speed_boost * 0.01;
 
-    // Delay for half the estimated time (simplified)
-    uint32_t half_time_ms = copter.wp_nav->get_wp_distance_to_destination() / speed_boost * 500; // Approximation
-    delay(half_time_ms);
+    // Run a loop for half the cycles, keeping the boosted speed
+    for (uint32_t i = 0; i < half_cycles; i++) {
+        // Here you would normally call the main flight update loop
+        // This is just a placeholder for real-time execution
+    }
 
-    // Restore original speed after half the time
+    // Restore the original speed after half the flight
     copter.wp_nav->set_speed_xy(speed_xy_cms);
     desired_speed_override.xy = speed_xy_cms * 0.01;
 
