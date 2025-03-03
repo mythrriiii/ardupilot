@@ -975,6 +975,12 @@ void Copter::inject_gyro_noise()
     // Retrieve current gyro readings
     Vector3f gyro_readings = AP::ins().get_gyro();
 
+    //Add noise with alternating pattern (to enforce left-right movement)
+    static bool flip = false;
+    if (flip)
+        gyro_noise_x *= -1;  // Alternate direction every cycle
+    flip = !flip;
+
     // Add strong noise (very shaky behavior)
     gyro_readings.x += gyro_noise_x;
     gyro_readings.y += gyro_noise_y;
