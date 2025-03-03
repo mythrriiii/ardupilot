@@ -761,8 +761,7 @@ void AC_PosControl::update_xy_controller()
     _pos_target.xy() = _pos_desired.xy() + _pos_offset.xy();
 
     // Introduce random position disturbance
-    &curr_pos = _inav.get_position_neu_cm();
-    comb_pos = curr_pos;
+    comb_pos = _inav.get_position_neu_cm();
     comb_pos.x += random_disturbance(-10.0f, 10.0f);  // Random disturbance in cm
     comb_pos.y += random_disturbance(-10.0f, 10.0f);
     _disturb_pos.x = random_disturbance(-5.0f, 5.0f); // Additional small drift
