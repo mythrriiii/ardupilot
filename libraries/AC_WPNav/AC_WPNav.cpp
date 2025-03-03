@@ -1,11 +1,10 @@
 #include <AP_HAL/AP_HAL.h>
 #include "AC_WPNav.h"
-#include <cstdlib> //CHANGE
 
 extern const AP_HAL::HAL& hal;
 
 // maximum velocities and accelerations
-#define WPNAV_WP_SPEED                 100.0f      // default horizontal speed between waypoints in cm/s
+#define WPNAV_WP_SPEED                 1000.0f      // default horizontal speed between waypoints in cm/s
 #define WPNAV_WP_SPEED_MIN               10.0f      // minimum horizontal speed between waypoints in cm/s
 #define WPNAV_WP_RADIUS                 200.0f      // default waypoint radius in cm
 #define WPNAV_WP_RADIUS_MIN               5.0f      // minimum waypoint radius in cm
@@ -533,7 +532,6 @@ bool AC_WPNav::advance_wp_target_along_track(float dt)
     target_accel *= sq(vel_scaler_dt);
     target_accel += accel_offset;
 
-
     // pass new target to the position controller
     _pos_control.set_pos_vel_accel(target_pos.topostype(), target_vel, target_accel);
 
@@ -580,62 +578,13 @@ void AC_WPNav::update_track_with_speed_accel_limits()
 /// get_wp_distance_to_destination - get horizontal distance to destination in cm
 float AC_WPNav::get_wp_distance_to_destination() const
 {
-    //CHANGE
-    // Base distance calculation
-    float base_distance = get_horizontal_distance_cm(_inav.get_position_xy_cm(), _destination.xy());
-
-    // Introduce a random offset occasionally
-    static bool apply_offset = false;
-    static uint32_t counter = 0; // Simple counter for toggling
-
-    counter++;
-
-    // Toggle offset every 200 calls (~simulates time delay)
-    if (counter % 100 == 0) {
-        apply_offset = !apply_offset;
-    }
-
-    // Apply offset when enabled
-    if (apply_offset) {
-        float random_offset = (rand() % 2000000000) - 1000000000; // Random offset between -100cm and +100cm
-        base_distance += random_offset;
-    }
-    // Print the base distance to the console
-    hal.console->printf("DEBUG: Base Distance to WP: %.2f cm\n", base_distance);
-    return base_distance;
-    //return get_horizontal_distance_cm(_inav.get_position_xy_cm(), _destination.xy());
+    return get_horizontal_distance_cm(_inav.get_position_xy_cm(), _destination.xy());
 }
 
 /// get_wp_bearing_to_destination - get bearing to next waypoint in centi-degrees
 int32_t AC_WPNav::get_wp_bearing_to_destination() const
 {
-    // Base bearing calculation
-    int32_t base_bearing = get_bearing_cd(_inav.get_position_xy_cm(), _destination.xy());
-
-    // Introduce a random offset occasionally
-    static bool apply_offset = false;
-    static uint32_t counter = 0; // Simple counter for toggling
-
-    counter++;
-
-    // Toggle offset every 200 calls (~simulates time delay)
-    if (counter % 100 == 0) {
-        apply_offset = !apply_offset;
-    }
-
-    // Apply offset when enabled
-    if (apply_offset) {
-        int32_t random_offset = (rand() % 200001) - 100000; // Random offset between -100° and +100° (centi-degrees)
-        base_bearing += random_offset;
-    }
-
-    // Ensure the bearing stays within valid range (0 to 36000 centi-degrees)
-    base_bearing = (base_bearing + 36000) % 36000;
-
-    // Print the randomized bearing to the console
-    hal.console->printf("DEBUG: Bearing to WP: %d centi-degrees\n", base_bearing);
-    
-    return base_bearing;
+    return get_bearing_cd(_inav.get_position_xy_cm(), _destination.xy());
 }
 
 /// update_wpnav - run the wp controller - should be called at 100hz or higher
