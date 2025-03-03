@@ -1,10 +1,16 @@
 #include "Copter.h"
+#include <cstdlib>  // Include for random function CHANGE
 
 #define ARM_DELAY               20  // called at 10hz so 2 seconds
 #define DISARM_DELAY            20  // called at 10hz so 2 seconds
 #define LOST_VEHICLE_DELAY      10  // called at 10hz so 1 second
 
 static uint32_t auto_disarm_begin;
+
+// Introduce random noise into motor outputs to create instability
+float random_noise() {
+    return ((rand() % 200) - 100) / 1000.0; // Small fluctuations in thrust
+}
 
 // arm_motors_check - checks for pilot input to arm or disarm the copter
 // called at 10hz
@@ -165,13 +171,20 @@ void Copter::motors_output(bool full_push)
         LOGGER_WRITE_EVENT(LogEvent::MOTORS_INTERLOCK_DISABLED);
     }
 
+    //CHANGE
     if (ap.motor_test) {
-        // check if we are performing the motor test
         motor_test_output();
     } else {
-        // send output signals to motors
+        // Introduce instability in motor outputs
+        for (int i = 0; i < motors->get_num_motors(); i++) {
+            float noise = random_noise();
+            motors->set_desired_spool_state((AP_Motors::SpoolState)(motors->get_spool_state() + noise));
+        }
+
+        // Send output signals to motors
         flightmode->output_to_motors();
     }
+//ENDCHANGE
 
     // push all channels
     if (full_push) {
