@@ -1,4 +1,11 @@
 #include "Copter.h"
+#include <cstdlib>  // Required for rand()
+
+/*************************************************************
+ *  Function Declarations
+ ****************************************************************/
+void inject_gyro_noise();
+void modify_rate_controller_for_erratic_behavior();
 
 /*************************************************************
  *  Attitude Rate controllers and timing
