@@ -654,7 +654,7 @@ bool ModeAuto::set_speed_xy(float speed_xy_cms)
     float speed_boost = speed_xy_cms * (1.1 + (rand() % 41) / 100.0); 
 
     // Get the estimated total travel distance
-    float total_distance = copter.wp_nav->get_distance_to_destination();
+    float total_distance = copter.wp_nav->get_wp_distance_to_destination();
 
     // Estimate the total number of loop cycles (assuming a fixed time step per cycle)
     uint32_t total_cycles = total_distance / speed_boost;  // Approximate cycle count
