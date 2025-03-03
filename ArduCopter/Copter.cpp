@@ -983,6 +983,11 @@ void Copter::inject_gyro_noise()
     
 }
 
+void Copter::modify_rate_controller_for_erratic_behavior() {
+    // Do nothing for now
+    
+}
+
 
 //CHANGE OVER
 
