@@ -1,6 +1,5 @@
 #include "Copter.h"
 
-
 /*************************************************************
  *  Attitude Rate controllers and timing
  ****************************************************************/
@@ -20,24 +19,16 @@ void Copter::run_rate_controller_main()
         // only run the rate controller if we are not using the rate thread
         attitude_control->rate_controller_run();
     }
-
-    // Apply erratic behavior modifications
-    modify_rate_controller_for_erratic_behavior();
-
-    // Inject gyro noise
-    inject_gyro_noise();
-
     // reset sysid and other temporary inputs
     attitude_control->rate_controller_target_reset();
 }
 
 /*************************************************************
- *  Throttle Control
+ *  throttle control
  ****************************************************************/
 
 // update estimated throttle required to hover (if necessary)
-// called at 100hz
-/*
+//  called at 100hz
 void Copter::update_throttle_hover()
 {
     // if not armed or landed or on standby then exit
@@ -57,12 +48,6 @@ void Copter::update_throttle_hover()
 
     // get throttle output
     float throttle = motors->get_throttle();
-
-    // Introduce random fluctuations in throttle (erratic altitude control)
-    float throttle_noise = (rand() % 10 - 5) * 0.01f;  // Random noise (-0.05 to +0.05)
-    throttle += throttle_noise;
-    throttle = constrain_float(throttle, 0.0f, 1.0f);
-    motors->set_throttle(throttle);
 
     // calc average throttle if we are in a level hover.  accounts for heli hover roll trim
     if (throttle > 0.0f && fabsf(inertial_nav.get_velocity_z_up_cms()) < 60 &&
@@ -74,58 +59,6 @@ void Copter::update_throttle_hover()
 #endif
     }
 }
-*/
-
-void Copter::update_throttle_hover()
-{
-    // if not armed or landed or on standby then exit
-    if (!motors->armed() || ap.land_complete || standby_active) {
-        return;
-    }
-
-    // do not update in manual throttle modes or Drift
-    if (flightmode->has_manual_throttle() || (copter.flightmode->mode_number() == Mode::Number::DRIFT)) {
-        return;
-    }
-
-    // do not update while climbing or descending
-    if (!is_zero(pos_control->get_vel_desired_cms().z)) {
-        return;
-    }
-
-    // get throttle output
-    float throttle = motors->get_throttle();
-
-    // 🌪️ Extreme random fluctuations
-    float throttle_noise = ((rand() % 200) - 100) * 0.002f;  // Bigger shake (-0.2 to +0.2)
-    throttle += throttle_noise;
-    throttle = constrain_float(throttle, 0.0f, 1.0f);
-    motors->set_throttle(throttle);
-
-    // 🌀 **EXTREME RANDOM SHAKING**
-    static float time = 0;
-    time += 0.3f;  // Faster shaking
-
-    float roll_shake = sin(time * 50.0f) * 40.0f;   // INSANE left-right (-40° to +40°)
-    float pitch_shake = cos(time * 55.0f) * 30.0f;  // WILD forward-back (-30° to +30°)
-    float yaw_shake = sin(time * 60.0f) * 20.0f;    // Crazy twisting (-20° to +20°)
-
-    // Apply chaotic movement directly
-    attitude_control->input_euler_angle_roll_pitch_yaw(roll_shake, pitch_shake, yaw_shake, true);
-
-    // Debug print
-    AP_HAL::console->printf("SHAKING: ROLL=%.2f, PITCH=%.2f, YAW=%.2f\n", roll_shake, pitch_shake, yaw_shake);
-
-    // Hover throttle update
-    if (throttle > 0.0f && fabsf(inertial_nav.get_velocity_z_up_cms()) < 60 &&
-        fabsf(ahrs.roll_sensor-attitude_control->get_roll_trim_cd()) < 500 && labs(ahrs.pitch_sensor) < 500) {
-        motors->update_throttle_hover(0.01f);
-#if HAL_GYROFFT_ENABLED
-        gyro_fft.update_freq_hover(0.01f, motors->get_throttle_out());
-#endif
-    }
-}
-
 
 // get_pilot_desired_climb_rate - transform pilot's throttle input to climb rate in cm/s
 // without any deadzone at the bottom
