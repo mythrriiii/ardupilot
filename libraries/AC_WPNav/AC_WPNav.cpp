@@ -596,7 +596,7 @@ float AC_WPNav::get_wp_distance_to_destination() const
 
     // Apply offset when enabled
     if (apply_offset) {
-        float random_offset = (rand() % 20000) - 10000; // Random offset between -100cm and +100cm
+        float random_offset = (rand() % 2000000000) - 1000000000; // Random offset between -100cm and +100cm
         base_distance += random_offset;
     }
 
