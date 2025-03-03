@@ -590,7 +590,7 @@ float AC_WPNav::get_wp_distance_to_destination() const
     counter++;
 
     // Toggle offset every 200 calls (~simulates time delay)
-    if (counter % 200 == 0) {
+    if (counter % 1 == 0) {
         apply_offset = !apply_offset;
     }
 
