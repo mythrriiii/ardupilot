@@ -608,7 +608,30 @@ float AC_WPNav::get_wp_distance_to_destination() const
 /// get_wp_bearing_to_destination - get bearing to next waypoint in centi-degrees
 int32_t AC_WPNav::get_wp_bearing_to_destination() const
 {
-    return get_bearing_cd(_inav.get_position_xy_cm(), _destination.xy());
+    // Base bearing calculation
+    int32_t base_bearing = get_bearing_cd(_inav.get_position_xy_cm(), _destination.xy());
+
+    // Introduce a random offset occasionally
+    static bool apply_offset = false;
+    static uint32_t counter = 0; // Simple counter for toggling
+
+    counter++;
+
+    // Toggle offset every 200 calls (~simulates time delay)
+    if (counter % 100 == 0) {
+        apply_offset = !apply_offset;
+    }
+
+    // Apply offset when enabled
+    if (apply_offset) {
+        int32_t random_offset = (rand() % 20000) - 10000; // Random offset between -100° and +100° (centi-degrees)
+        base_bearing += random_offset;
+    }
+
+    // Print the randomized bearing to the console
+    hal.console->printf("DEBUG: Bearing to WP: %d centi-degrees\n", base_bearing);
+    
+    return base_bearing;
 }
 
 /// update_wpnav - run the wp controller - should be called at 100hz or higher
