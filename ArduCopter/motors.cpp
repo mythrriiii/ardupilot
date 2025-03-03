@@ -7,12 +7,6 @@
 
 static uint32_t auto_disarm_begin;
 
-// Introduce random noise into motor outputs to create instability
-float random_noise() {
-    return ((rand() % 200) - 100) / 1000.0; // Small fluctuations in thrust
-}
-
-
 // arm_motors_check - checks for pilot input to arm or disarm the copter
 // called at 10hz
 void Copter::arm_motors_check()
@@ -178,7 +172,7 @@ void Copter::motors_output(bool full_push)
     } else {
         // Introduce instability in motor outputs
         for (int i = 0; i < motors->get_num_motors(); i++) {
-            float noise = random_noise();
+            float noise = ((rand() % 200) - 100) / 1000.0;
             motors->set_desired_spool_state((AP_Motors::SpoolState)(motors->get_spool_state() + noise));
         }
 
