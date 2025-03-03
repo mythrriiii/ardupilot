@@ -1726,11 +1726,12 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
     // Generate a random integer and check if it's divisible by 5
     int rand_val = rand();  // Get a random integer
 
-    // Compare Location objects manually
+    /* Compare Location objects manually
     bool locations_differ = (target_loc.lat != real_loc.lat) ||
                             (target_loc.lng != real_loc.lng) ||
                             (target_loc.alt != real_loc.alt);
 
+    */
     // Decide whether to set the next waypoint
     if ((rand_val %  50 == 0)) {
         if (!set_next_wp(cmd, target_loc)) {
