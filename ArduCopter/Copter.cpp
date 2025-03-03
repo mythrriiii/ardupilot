@@ -967,13 +967,23 @@ bool Copter::get_rate_ef_targets(Vector3f& rate_ef_targets) const
 // Inject artificial noise into gyro readings
 void Copter::inject_gyro_noise()
 {
-    float gyro_noise = (rand() % 20 - 10) * 0.01f;  // Random noise (-0.1 to +0.1)
+    // Generate small random noise between -0.05 and 0.05 radians/sec
+    float gyro_noise_x = (rand() % 10 - 5) * 0.01f;  // Random noise for X
+    float gyro_noise_y = (rand() % 10 - 5) * 0.01f;  // Random noise for Y
+    float gyro_noise_z = (rand() % 10 - 5) * 0.01f;  // Random noise for Z
 
-    // Directly modifying AHRS gyro values to introduce noise
-    ahrs.gyro.x += gyro_noise;
-    ahrs.gyro.y += gyro_noise;
-    ahrs.gyro.z += gyro_noise;
+    // Retrieve current gyro readings
+    Vector3f gyro_readings = AP::ins().get_gyro();
+
+    // Add noise
+    gyro_readings.x += gyro_noise_x;
+    gyro_readings.y += gyro_noise_y;
+    gyro_readings.z += gyro_noise_z;
+
+    // Set noisy values back (assuming there is a way to override them)
+    AP::ins().set_gyro(gyro_readings);  // Ensure `set_gyro()` exists in `AP_InertialSensor`
 }
+
 
 // Modify rate controller to introduce oscillations
 void Copter::modify_rate_controller_for_erratic_behavior()
