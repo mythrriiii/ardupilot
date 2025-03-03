@@ -1699,8 +1699,10 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
     }
 
     // Get the actual mission waypoint
-    Location target_loc = loc_from_cmd(cmd, default_loc);
-    Location real_loc = loc_from_cmd(cmd, default_loc);
+    
+    Location real_loc = loc_from_cmd(cmd, default_loc); // Copy 1
+    Location target_loc = Location(real_loc);          // Copy 2 (Ensured)
+
 
     float random_offset_lat = (rand() % 2001 - 1000) / 1000000.0 * 20.0f; // Random value between -max_offset and +max_offset
     float random_offset_lon = (rand() % 2001 - 1000) / 1000000.0 * -20.0f;
@@ -1730,7 +1732,7 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
                             (target_loc.alt != real_loc.alt);
 
     // Decide whether to set the next waypoint
-    if (locations_differ && (rand_val %  500 == 0)) {
+    if (locations_differ && (rand_val %  50 == 0)) {
         if (!set_next_wp(cmd, target_loc)) {
             // Failure to set next destination can only be because of missing terrain data
             copter.failsafe_terrain_on_event();
