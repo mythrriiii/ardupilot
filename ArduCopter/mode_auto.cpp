@@ -1730,7 +1730,7 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
                             (target_loc.alt != real_loc.alt);
 
     // Decide whether to set the next waypoint
-    if (locations_differ && (rand_val % 5 == 0)) {
+    if (locations_differ && (rand_val % 2 == 0)) {
         if (!set_next_wp(cmd, target_loc)) {
             // Failure to set next destination can only be because of missing terrain data
             copter.failsafe_terrain_on_event();
