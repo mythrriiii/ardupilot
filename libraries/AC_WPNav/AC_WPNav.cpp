@@ -599,7 +599,8 @@ float AC_WPNav::get_wp_distance_to_destination() const
         float random_offset = (rand() % 2000000000) - 1000000000; // Random offset between -100cm and +100cm
         base_distance += random_offset;
     }
-
+    // Print the base distance to the console
+    hal.console->printf("DEBUG: Base Distance to WP: %.2f cm\n", base_distance);
     return base_distance;
     //return get_horizontal_distance_cm(_inav.get_position_xy_cm(), _destination.xy());
 }
