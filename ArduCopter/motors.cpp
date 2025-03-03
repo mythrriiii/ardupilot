@@ -1,5 +1,4 @@
 #include "Copter.h"
-#include <cstdlib>  // Include for random function CHANGE
 
 #define ARM_DELAY               20  // called at 10hz so 2 seconds
 #define DISARM_DELAY            20  // called at 10hz so 2 seconds
@@ -170,16 +169,7 @@ void Copter::motors_output(bool full_push)
         // check if we are performing the motor test
         motor_test_output();
     } else {
-        
-        // Introduce instability in motor outputs
-        for (int i = 0; i < AP_MOTORS_MAX_NUM_MOTORS; i++) {
-            float noise = ((rand() % 200) - 100) / 1000.0;
-            motors->set_roll(i, motors->get_roll(i) + noise);
-            motors->set_pitch(i, motors->get_pitch(i) + noise);
-            motors->set_throttle(i, motors->get_throttle(i) + noise);
-        }
-
-        // Send output signals to motors
+        // send output signals to motors
         flightmode->output_to_motors();
     }
 
