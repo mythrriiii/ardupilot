@@ -750,7 +750,7 @@ void AC_PosControl::update_xy_controller()
     }
     _last_update_xy_ticks = AP::scheduler().ticks32();
 
-    float ahrsGndSpdLimit, ahrsControlScaleXY;
+    
     AP::ahrs().getControlLimits(ahrsGndSpdLimit, ahrsControlScaleXY);
 
     // update the position, velocity and acceleration offsets
@@ -768,7 +768,7 @@ void AC_PosControl::update_xy_controller()
     _disturb_pos.x = random_disturbance(-5.0f, 5.0f); // Additional small drift
     _disturb_pos.y = random_disturbance(-5.0f, 5.0f);
 
-    Vector2f vel_target = _p_pos_xy.update_all(_pos_target.x, _pos_target.y, comb_pos);
+    vel_target = _p_pos_xy.update_all(_pos_target.x, _pos_target.y, comb_pos);
     _pos_desired.xy() = _pos_target.xy() - _pos_offset.xy();
 
     // Velocity Controller
