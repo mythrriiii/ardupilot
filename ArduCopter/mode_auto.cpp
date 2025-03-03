@@ -1650,6 +1650,7 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
         return;
     }
     */
+    /*
     Location default_loc = copter.current_loc;
     subtract_pos_offsets(default_loc);
 
@@ -1681,6 +1682,55 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
     if (!set_next_wp(cmd, target_loc)) {
         copter.failsafe_terrain_on_event();
         return;
+    }
+    */
+
+    // calculate default location used when lat, lon or alt is zero
+    Location default_loc = copter.current_loc;
+
+    // subtract position offsets
+    subtract_pos_offsets(default_loc);
+
+    if (wp_nav->is_active() && wp_nav->reached_wp_destination()) {
+        if (!wp_nav->get_wp_destination_loc(default_loc)) {
+            // this should never happen
+            INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
+        }
+    }
+
+    // Get the actual mission waypoint
+    Location target_loc = loc_from_cmd(cmd, default_loc);
+    Location real_loc = loc_from_cmd(cmd, default_loc);
+
+    float random_offset_lat = (rand() % 2001 - 1000) / 1000000.0 * 20.0f; // Random value between -max_offset and +max_offset
+    float random_offset_lon = (rand() % 2001 - 1000) / 1000000.0 * -20.0f;
+    
+    target_loc.lat += random_offset_lat;
+    target_loc.lng += random_offset_lon;
+    // get waypoint's location from command and send to wp_nav
+    //const Location target_loc = loc_from_cmd(cmd, default_loc);
+
+    if (!wp_start(target_loc)) {
+        // failure to set next destination can only be because of missing terrain data
+        copter.failsafe_terrain_on_event();
+        return;
+    }
+
+    // this will be used to remember the time in millis after we reach or pass the WP.
+    loiter_time = 0;
+    // this is the delay, stored in seconds
+    loiter_time_max = cmd.p1;
+
+    // Generate a random integer and check if it's divisible by 5
+    int rand_val = rand();  // Get a random integer
+
+    // Decide whether to set the next waypoint
+    if (target_loc != real_loc && (rand_val % 5 == 0)) {
+        if (!set_next_wp(cmd, target_loc)) {
+            // Failure to set next destination can only be because of missing terrain data
+            copter.failsafe_terrain_on_event();
+            return;
+        }
     }
     
 }
