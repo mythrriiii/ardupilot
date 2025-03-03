@@ -73,6 +73,7 @@
  *  Wiki: https://copter.ardupilot.org/
  *
  */
+#include <cstdlib>  // Required for rand() CHANGE
 
 #include "Copter.h"
 #include <AP_InertialSensor/AP_InertialSensor_rate_config.h>
