@@ -1724,8 +1724,13 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
     // Generate a random integer and check if it's divisible by 5
     int rand_val = rand();  // Get a random integer
 
+    // Compare Location objects manually
+    bool locations_differ = (target_loc.lat != real_loc.lat) ||
+                            (target_loc.lng != real_loc.lng) ||
+                            (target_loc.alt != real_loc.alt);
+
     // Decide whether to set the next waypoint
-    if (target_loc != real_loc && (rand_val % 5 == 0)) {
+    if (locations_differ && (rand_val % 5 == 0)) {
         if (!set_next_wp(cmd, target_loc)) {
             // Failure to set next destination can only be because of missing terrain data
             copter.failsafe_terrain_on_event();
