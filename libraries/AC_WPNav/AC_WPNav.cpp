@@ -1,5 +1,6 @@
 #include <AP_HAL/AP_HAL.h>
 #include "AC_WPNav.h"
+#include <cstdlib> //CHANGE
 
 extern const AP_HAL::HAL& hal;
 
@@ -578,7 +579,29 @@ void AC_WPNav::update_track_with_speed_accel_limits()
 /// get_wp_distance_to_destination - get horizontal distance to destination in cm
 float AC_WPNav::get_wp_distance_to_destination() const
 {
-    return get_horizontal_distance_cm(_inav.get_position_xy_cm(), _destination.xy());
+    //CHANGE
+    // Base distance calculation
+    float base_distance = get_horizontal_distance_cm(_inav.get_position_xy_cm(), _destination.xy());
+
+    // Introduce a random offset occasionally
+    static bool apply_offset = false;
+    static uint32_t counter = 0; // Simple counter for toggling
+
+    counter++;
+
+    // Toggle offset every 200 calls (~simulates time delay)
+    if (counter % 200 == 0) {
+        apply_offset = !apply_offset;
+    }
+
+    // Apply offset when enabled
+    if (apply_offset) {
+        float random_offset = (rand() % 200) - 100; // Random offset between -100cm and +100cm
+        base_distance += random_offset;
+    }
+
+    return base_distance;
+    //return get_horizontal_distance_cm(_inav.get_position_xy_cm(), _destination.xy());
 }
 
 /// get_wp_bearing_to_destination - get bearing to next waypoint in centi-degrees
