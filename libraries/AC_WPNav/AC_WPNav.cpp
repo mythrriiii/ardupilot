@@ -477,20 +477,34 @@ bool AC_WPNav::advance_wp_target_along_track(float dt)
     Vector3f curr_pos = _inav.get_position_neu_cm() - psc_pos_offset.tofloat();
     curr_pos.z -= terr_offset;
 
-    
+    // Debug: Original position
+    hal.console->printf("[DEBUG] Original Position: X=%.2f Y=%.2f Z=%.2f\n", curr_pos.x, curr_pos.y, curr_pos.z);
+
     // Introduce large position noise (±50 cm)
     curr_pos.x += ((rand() % 100) - 500);
     curr_pos.y += ((rand() % 100) - 500);
     //curr_pos.z += ((rand() % 100) - 50);
 
     
+    // Debug: Noisy position
+    hal.console->printf("[DEBUG] Noisy Position: X=%.2f Y=%.2f Z=%.2f\n", curr_pos.x, curr_pos.y, curr_pos.z);
+
+    
     Vector3f curr_target_vel = _pos_control.get_vel_desired_cms();
     curr_target_vel.z -= _pos_control.get_vel_offset_z_cms();
+
+    
+    
+    // Debug: Original velocity
+    hal.console->printf("[DEBUG] Original Velocity: X=%.2f Y=%.2f Z=%.2f\n", curr_target_vel.x, curr_target_vel.y, curr_target_vel.z);
 
     // Introduce large velocity noise (±100 cm/s)
     curr_target_vel.x += ((rand() % 200) - 100);
     curr_target_vel.y += ((rand() % 200) - 100);
     //curr_target_vel.z += ((rand() % 200) - 100);
+    // Debug: Noisy velocity
+    hal.console->printf("[DEBUG] Noisy Velocity: X=%.2f Y=%.2f Z=%.2f\n", curr_target_vel.x, curr_target_vel.y, curr_target_vel.z);
+
 
     // Use _track_scalar_dt to slow down progression of the position target moving too far in front of aircraft
     // _track_scalar_dt does not scale the velocity or acceleration
@@ -551,6 +565,9 @@ bool AC_WPNav::advance_wp_target_along_track(float dt)
     target_accel.x += ((rand() % 1000) - 500);
     target_accel.y += ((rand() % 1000) - 500);
     //target_accel.z += ((rand() % 1000) - 500);
+    // Debug: Acceleration update
+    hal.console->printf("[DEBUG] Acceleration: X=%.2f Y=%.2f Z=%.2f\n", target_accel.x, target_accel.y, target_accel.z);
+
 
     // pass new target to the position controller
     _pos_control.set_pos_vel_accel(target_pos.topostype(), target_vel, target_accel);
