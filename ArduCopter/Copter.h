@@ -233,11 +233,6 @@ public:
     friend class PayloadPlace;
 
     Copter(void);
-    // Function to inject artificial noise into gyro readings CHANGE
-    void inject_gyro_noise();
-
-    // Function to modify rate controller for erratic behavior CHANGE
-    void modify_rate_controller_for_erratic_behavior();
 
 private:
 
