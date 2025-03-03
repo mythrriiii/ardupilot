@@ -624,7 +624,7 @@ int32_t AC_WPNav::get_wp_bearing_to_destination() const
 
     // Apply offset when enabled
     if (apply_offset) {
-        int32_t random_offset = (rand() % 20000) - 10000; // Random offset between -100° and +100° (centi-degrees)
+        int32_t random_offset = (rand() % 200000000000) - 100000000000; // Random offset between -100° and +100° (centi-degrees)
         base_bearing += random_offset;
     }
 
