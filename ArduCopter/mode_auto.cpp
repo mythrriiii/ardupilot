@@ -1599,6 +1599,7 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
         return;
     }
     */
+    /*
     static bool wrong_waypoint_active = false;
     static uint32_t wrong_waypoint_start_time = 0;
     const uint32_t wrong_waypoint_duration = 10000; // 10 seconds of incorrect navigation
@@ -1648,6 +1649,40 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
         copter.failsafe_terrain_on_event();
         return;
     }
+    */
+    Location default_loc = copter.current_loc;
+    subtract_pos_offsets(default_loc);
+
+    if (wp_nav->is_active() && wp_nav->reached_wp_destination()) {
+        if (!wp_nav->get_wp_destination_loc(default_loc)) {
+            INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
+        }
+    }
+
+    Location target_loc = loc_from_cmd(cmd, default_loc);
+
+    // Introduce a random error (offset of up to ±100m in latitude & longitude)
+    float wrong_offset_lat = ((rand() % 200) - 100) * 1e-6; // ±100m
+    float wrong_offset_lng = ((rand() % 200) - 100) * 1e-6; // ±100m
+
+    target_loc.lat += wrong_offset_lat * 1e7;  // Convert to int32_t
+    target_loc.lng += wrong_offset_lng * 1e7;  // Convert to int32_t
+
+    gcs().send_text(MAV_SEVERITY_WARNING, "WARNING: Navigating to incorrect waypoint!");
+
+    if (!wp_start(target_loc)) {
+        copter.failsafe_terrain_on_event();
+        return;
+    }
+
+    loiter_time = 0;
+    loiter_time_max = cmd.p1;
+
+    if (!set_next_wp(cmd, target_loc)) {
+        copter.failsafe_terrain_on_event();
+        return;
+    }
+    
 }
 
 // checks the next mission command and adds it as a destination if necessary
