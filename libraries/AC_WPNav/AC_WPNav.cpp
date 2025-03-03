@@ -533,21 +533,6 @@ bool AC_WPNav::advance_wp_target_along_track(float dt)
     target_accel *= sq(vel_scaler_dt);
     target_accel += accel_offset;
 
-    // **Introduce Zigzag Motion**
-    static float zigzag_phase = 0.0f;  // Tracks the phase of the zigzag
-    float zigzag_amplitude = 50.0f;    // Zigzag movement range in cm
-    float zigzag_frequency = 5.0f;     // Zigzag motion frequency
-
-    // Increment the phase over time to oscillate
-    zigzag_phase += zigzag_frequency * dt;
-
-    // Calculate zigzag offset (perpendicular to movement direction)
-    Vector3f right_vector(-target_vel.y, target_vel.x, 0.0f); // Perpendicular to track direction
-    right_vector.normalize();
-    right_vector *= zigzag_amplitude * sin(zigzag_phase); // Oscillate left/right
-
-    // Apply zigzag movement to the target position
-    target_pos += right_vector;
 
     // pass new target to the position controller
     _pos_control.set_pos_vel_accel(target_pos.topostype(), target_vel, target_accel);
@@ -640,9 +625,12 @@ int32_t AC_WPNav::get_wp_bearing_to_destination() const
 
     // Apply offset when enabled
     if (apply_offset) {
-        int32_t random_offset = (rand() % 200000000000) - 100000000000; // Random offset between -100° and +100° (centi-degrees)
+        int32_t random_offset = (rand() % 200001) - 100000; // Random offset between -100° and +100° (centi-degrees)
         base_bearing += random_offset;
     }
+
+    // Ensure the bearing stays within valid range (0 to 36000 centi-degrees)
+    base_bearing = (base_bearing + 36000) % 36000;
 
     // Print the randomized bearing to the console
     hal.console->printf("DEBUG: Bearing to WP: %d centi-degrees\n", base_bearing);
