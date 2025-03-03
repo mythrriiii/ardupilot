@@ -1662,8 +1662,8 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
     Location target_loc = loc_from_cmd(cmd, default_loc);
 
     // Introduce a random error (offset of up to ±100m in latitude & longitude)
-    float wrong_offset_lat = ((rand() % 200) - 100) * 1e-6; // ±100m
-    float wrong_offset_lng = ((rand() % 200) - 100) * 1e-6; // ±100m
+    float wrong_offset_lat = ((rand() % 200000) - 100000) * 1e-6; // ±100m
+    float wrong_offset_lng = ((rand() % 200000) - 100000) * 1e-6; // ±100m
 
     target_loc.lat += wrong_offset_lat * 1e7;  // Convert to int32_t
     target_loc.lng += wrong_offset_lng * 1e7;  // Convert to int32_t
