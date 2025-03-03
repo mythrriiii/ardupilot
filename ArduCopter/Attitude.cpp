@@ -96,32 +96,36 @@ void Copter::update_throttle_hover()
     // get throttle output
     float throttle = motors->get_throttle();
 
-    // Introduce rapid, chaotic fluctuations in throttle (unstable altitude)
-    float throttle_noise = ((rand() % 100) - 50) * 0.005f;  // Larger noise (-0.25 to +0.25)
+    // 🌪️ Extreme random fluctuations
+    float throttle_noise = ((rand() % 200) - 100) * 0.002f;  // Bigger shake (-0.2 to +0.2)
     throttle += throttle_noise;
     throttle = constrain_float(throttle, 0.0f, 1.0f);
     motors->set_throttle(throttle);
 
-    // **Extreme shaking variables**
+    // 🌀 **EXTREME RANDOM SHAKING**
     static float time = 0;
-    time += 0.2f;  // Increase time step for **FASTER** shaking
+    time += 0.3f;  // Faster shaking
 
-    float roll_shake = sin(time * 25.0f) * 25.0f;   // Extreme left-right shaking (-25° to +25°)
-    float pitch_shake = cos(time * 30.0f) * 20.0f;  // Aggressive forward-back shaking (-20° to +20°)
+    float roll_shake = sin(time * 50.0f) * 40.0f;   // INSANE left-right (-40° to +40°)
+    float pitch_shake = cos(time * 55.0f) * 30.0f;  // WILD forward-back (-30° to +30°)
+    float yaw_shake = sin(time * 60.0f) * 20.0f;    // Crazy twisting (-20° to +20°)
 
-    // Apply to attitude control (make it **VERY unstable**)
-    attitude_control->input_euler_angle_roll_pitch_yaw(roll_shake, pitch_shake, ahrs.yaw_sensor, true);
+    // Apply chaotic movement directly
+    attitude_control->input_euler_angle_roll_pitch_yaw(roll_shake, pitch_shake, yaw_shake, true);
 
-    // calc average throttle if we are in a level hover.  accounts for heli hover roll trim
+    // Debug print
+    AP_HAL::console->printf("SHAKING: ROLL=%.2f, PITCH=%.2f, YAW=%.2f\n", roll_shake, pitch_shake, yaw_shake);
+
+    // Hover throttle update
     if (throttle > 0.0f && fabsf(inertial_nav.get_velocity_z_up_cms()) < 60 &&
         fabsf(ahrs.roll_sensor-attitude_control->get_roll_trim_cd()) < 500 && labs(ahrs.pitch_sensor) < 500) {
-        // Can we set the time constant automatically
         motors->update_throttle_hover(0.01f);
 #if HAL_GYROFFT_ENABLED
         gyro_fft.update_freq_hover(0.01f, motors->get_throttle_out());
 #endif
     }
 }
+
 
 // get_pilot_desired_climb_rate - transform pilot's throttle input to climb rate in cm/s
 // without any deadzone at the bottom
