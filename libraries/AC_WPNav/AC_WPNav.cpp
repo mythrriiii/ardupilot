@@ -533,6 +533,22 @@ bool AC_WPNav::advance_wp_target_along_track(float dt)
     target_accel *= sq(vel_scaler_dt);
     target_accel += accel_offset;
 
+    // **Introduce Zigzag Motion**
+    static float zigzag_phase = 0.0f;  // Tracks the phase of the zigzag
+    float zigzag_amplitude = 1000.0f;    // Zigzag movement range in cm
+    float zigzag_frequency = 5.0f;     // Zigzag motion frequency
+
+    // Increment the phase over time to oscillate
+    zigzag_phase += zigzag_frequency * dt;
+
+    // Calculate zigzag offset (perpendicular to movement direction)
+    Vector3f right_vector(-target_vel.y, target_vel.x, 0.0f); // Perpendicular to track direction
+    right_vector.normalize();
+    right_vector *= zigzag_amplitude * sin(zigzag_phase); // Oscillate left/right
+
+    // Apply zigzag movement to the target position
+    target_pos += right_vector;
+
     // pass new target to the position controller
     _pos_control.set_pos_vel_accel(target_pos.topostype(), target_vel, target_accel);
 
