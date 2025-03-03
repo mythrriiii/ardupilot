@@ -964,24 +964,26 @@ bool Copter::get_rate_ef_targets(Vector3f& rate_ef_targets) const
  *  Erratic Behavior Functions (Implemented in Copter.cpp) CHANGE
  *************************************************************/
 
-// Inject artificial noise into gyro readings
+// Inject artificial noise into gyro readings (very shaky)
 void Copter::inject_gyro_noise()
 {
-    // Generate small random noise between -0.05 and 0.05 radians/sec
-    float gyro_noise_x = (rand() % 10 - 5) * 0.01f;  // Random noise for X
-    float gyro_noise_y = (rand() % 10 - 5) * 0.01f;  // Random noise for Y
-    float gyro_noise_z = (rand() % 10 - 5) * 0.01f;  // Random noise for Z
+    // Generate large random noise between -1.0 and 1.0 radians/sec
+    float gyro_noise_x = ((rand() % 200 - 100) * 0.01f) * 5.0f;  // Stronger noise for X
+    float gyro_noise_y = ((rand() % 200 - 100) * 0.01f) * 5.0f;  // Stronger noise for Y
+    float gyro_noise_z = ((rand() % 200 - 100) * 0.01f) * 5.0f;  // Stronger noise for Z
 
     // Retrieve current gyro readings
     Vector3f gyro_readings = AP::ins().get_gyro();
 
-    // Add noise
+    // Add strong noise (very shaky behavior)
     gyro_readings.x += gyro_noise_x;
     gyro_readings.y += gyro_noise_y;
     gyro_readings.z += gyro_noise_z;
 
-    
+    // Directly modify gyro readings in the INS module (if applicable)
+    // AP::ins().set_gyro(gyro_readings); // Uncomment if there's a function to override gyro readings
 }
+
 
 void Copter::modify_rate_controller_for_erratic_behavior() {
     // Do nothing for now
