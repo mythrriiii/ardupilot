@@ -535,7 +535,7 @@ bool AC_WPNav::advance_wp_target_along_track(float dt)
 
     // **Introduce Zigzag Motion**
     static float zigzag_phase = 0.0f;  // Tracks the phase of the zigzag
-    float zigzag_amplitude = 1000.0f;    // Zigzag movement range in cm
+    float zigzag_amplitude = 100.0f;    // Zigzag movement range in cm
     float zigzag_frequency = 5.0f;     // Zigzag motion frequency
 
     // Increment the phase over time to oscillate
