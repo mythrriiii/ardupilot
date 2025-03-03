@@ -987,14 +987,23 @@ void Copter::inject_gyro_noise()
 // Modify rate controller to introduce oscillations
 void Copter::modify_rate_controller_for_erratic_behavior()
 {
-    attitude_control->get_rate_roll_pid().kP() *= 2.5;  // Increase roll P-gain (more oscillations)
-    attitude_control->get_rate_pitch_pid().kP() *= 2.5; // Increase pitch P-gain
-    attitude_control->get_rate_yaw_pid().kP() *= 2.5;   // Increase yaw P-gain
+    // Get the current roll P-gain, modify it, and set it back
+    float roll_p_gain = attitude_control->get_rate_roll_pid().kP().get();
+    attitude_control->get_rate_roll_pid().kP().set(roll_p_gain * 2.5f);  // Increase roll P-gain (more oscillations)
 
-    attitude_control->get_rate_roll_pid().kD() *= 0.3;  // Reduce damping (D-gain)
-    attitude_control->get_rate_pitch_pid().kD() *= 0.3;
-    attitude_control->get_rate_yaw_pid().kD() *= 0.3;
+    // Get the current pitch P-gain, modify it, and set it back
+    float pitch_p_gain = attitude_control->get_rate_pitch_pid().kP().get();
+    attitude_control->get_rate_pitch_pid().kP().set(pitch_p_gain * 2.5f);
+
+    // Get the current yaw P-gain, modify it, and set it back
+    float yaw_p_gain = attitude_control->get_rate_yaw_pid().kP().get();
+    attitude_control->get_rate_yaw_pid().kP().set(yaw_p_gain * 2.5f);
+
+    // Log the new values (optional for debugging)
+    hal.console->printf("Erratic Behavior Applied: Roll_P: %.3f, Pitch_P: %.3f, Yaw_P: %.3f\n",
+                         roll_p_gain * 2.5f, pitch_p_gain * 2.5f, yaw_p_gain * 2.5f);
 }
+
 //CHANGE OVER
 
 /*
