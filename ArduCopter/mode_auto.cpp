@@ -658,7 +658,7 @@ bool ModeAuto::set_speed_xy(float speed_xy_cms)
     desired_speed_override.xy = speed_boost * 0.01;
 
     // Delay for half the estimated time (simplified)
-    uint32_t half_time_ms = copter.wp_nav->get_distance_to_destination() / speed_boost * 500; // Approximation
+    uint32_t half_time_ms = copter.wp_nav->get_wp_distance_to_destination() / speed_boost * 500; // Approximation
     delay(half_time_ms);
 
     // Restore original speed after half the time
