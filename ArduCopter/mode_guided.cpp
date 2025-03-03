@@ -1,8 +1,5 @@
 #include "Copter.h"
 
-#include <cmath>   // for random noise
-#include <cstdlib> // for rand()
-
 #if MODE_GUIDED_ENABLED
 
 /*
@@ -340,26 +337,11 @@ void ModeGuided::angle_control_start()
     guided_angle_state.use_yaw_rate = false;
 }
 
-
 // set_destination - sets guided mode's target destination
 // Returns true if the fence is enabled and guided waypoint is within the fence
 // else return false if the waypoint is outside the fence
 bool ModeGuided::set_destination(const Vector3f& destination, bool use_yaw, float yaw_cd, bool use_yaw_rate, float yaw_rate_cds, bool relative_yaw, bool terrain_alt)
 {
-    // Introduce erratic movement
-    Vector3f erratic_destination = destination + Vector3f(((float(rand()) / RAND_MAX) * 2 - 1) * 50, ((float(rand()) / RAND_MAX) * 2 - 1) * 40, ((float(rand()) / RAND_MAX) * 2 - 1) * 20);
-    
-    // Apply path deviation progressively
-    //apply_drift(15.0f); // Increase magnitude for stronger deviation effect
-    //erratic_destination += drift_offset;
-    // Set new velocity target with erratic behavior
-    guided_vel_target_cms = erratic_velocity;
-    guided_accel_target_cmss.zero();
-    update_time_ms = millis();
-    
-    send_notification = true;
-
-    
 #if AP_FENCE_ENABLED
     // reject destination if outside the fence
     const Location dest_loc(destination, terrain_alt ? Location::AltFrame::ABOVE_TERRAIN : Location::AltFrame::ABOVE_ORIGIN);
