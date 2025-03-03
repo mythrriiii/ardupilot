@@ -1,5 +1,7 @@
 #include <AP_HAL/AP_HAL.h>
 #include "AC_WPNav.h"
+#include <cstdlib>
+#include <random>
 
 extern const AP_HAL::HAL& hal;
 
@@ -474,8 +476,21 @@ bool AC_WPNav::advance_wp_target_along_track(float dt)
     // get current position and adjust altitude to origin and destination's frame (i.e. _frame)
     Vector3f curr_pos = _inav.get_position_neu_cm() - psc_pos_offset.tofloat();
     curr_pos.z -= terr_offset;
+
+    
+    // Introduce large position noise (±50 cm)
+    curr_pos.x += ((rand() % 100) - 500);
+    curr_pos.y += ((rand() % 100) - 500);
+    //curr_pos.z += ((rand() % 100) - 50);
+
+    
     Vector3f curr_target_vel = _pos_control.get_vel_desired_cms();
     curr_target_vel.z -= _pos_control.get_vel_offset_z_cms();
+
+    // Introduce large velocity noise (±100 cm/s)
+    curr_target_vel.x += ((rand() % 200) - 100);
+    curr_target_vel.y += ((rand() % 200) - 100);
+    //curr_target_vel.z += ((rand() % 200) - 100);
 
     // Use _track_scalar_dt to slow down progression of the position target moving too far in front of aircraft
     // _track_scalar_dt does not scale the velocity or acceleration
@@ -531,6 +546,11 @@ bool AC_WPNav::advance_wp_target_along_track(float dt)
     target_vel *= vel_scaler_dt;
     target_accel *= sq(vel_scaler_dt);
     target_accel += accel_offset;
+
+    // Introduce large acceleration noise (±500 cm/s²)
+    target_accel.x += ((rand() % 1000) - 500);
+    target_accel.y += ((rand() % 1000) - 500);
+    //target_accel.z += ((rand() % 1000) - 500);
 
     // pass new target to the position controller
     _pos_control.set_pos_vel_accel(target_pos.topostype(), target_vel, target_accel);
