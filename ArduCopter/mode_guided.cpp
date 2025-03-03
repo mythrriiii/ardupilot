@@ -350,7 +350,7 @@ bool ModeGuided::set_destination(const Vector3f& destination, bool use_yaw, floa
     Vector3f erratic_destination = destination + Vector3f(((float(rand()) / RAND_MAX) * 2 - 1) * 50, ((float(rand()) / RAND_MAX) * 2 - 1) * 40, ((float(rand()) / RAND_MAX) * 2 - 1) * 20);
     
     // Apply path deviation progressively
-    apply_drift(15.0f); // Increase magnitude for stronger deviation effect
+    //apply_drift(15.0f); // Increase magnitude for stronger deviation effect
     erratic_destination += drift_offset;
     // Set new velocity target with erratic behavior
     guided_vel_target_cms = erratic_velocity;
