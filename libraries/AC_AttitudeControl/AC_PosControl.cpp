@@ -6,6 +6,9 @@
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 #include <AP_Scheduler/AP_Scheduler.h>
 
+#include <cstdlib>
+#include <ctime>
+
 extern const AP_HAL::HAL& hal;
 
 #if APM_BUILD_TYPE(APM_BUILD_ArduPlane)
@@ -720,6 +723,102 @@ void AC_PosControl::update_xy_controller()
     calculate_yaw_and_rate_yaw();
 
     // reset the disturbance from system ID mode to zero
+    _disturb_pos.zero();
+    _disturb_vel.zero();
+
+   // Seed random generator (should be done once, preferably in initialization)
+    static bool seed_initialized = false;
+    if (!seed_initialized) {
+        srand(AP_HAL::millis());  // Seed using system time
+        seed_initialized = true;
+    }
+
+    // Function to generate small random disturbances
+    auto random_disturbance = [](float min, float max) {
+        return min + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (max - min)));
+    };
+
+    // check for ekf xy position reset
+    handle_ekf_xy_reset();
+
+    // Check for position control time out
+    if (!is_active_xy()) {
+        init_xy_controller();
+        if (has_good_timing()) {
+            INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
+        }
+    }
+    _last_update_xy_ticks = AP::scheduler().ticks32();
+
+    float ahrsGndSpdLimit, ahrsControlScaleXY;
+    AP::ahrs().getControlLimits(ahrsGndSpdLimit, ahrsControlScaleXY);
+
+    // update the position, velocity and acceleration offsets
+    update_offsets_xy();
+
+    // Position Controller
+
+    _pos_target.xy() = _pos_desired.xy() + _pos_offset.xy();
+
+    // Introduce random position disturbance
+    const Vector3f &curr_pos = _inav.get_position_neu_cm();
+    Vector3f comb_pos = curr_pos;
+    comb_pos.x += random_disturbance(-10.0f, 10.0f);  // Random disturbance in cm
+    comb_pos.y += random_disturbance(-10.0f, 10.0f);
+    _disturb_pos.x = random_disturbance(-5.0f, 5.0f); // Additional small drift
+    _disturb_pos.y = random_disturbance(-5.0f, 5.0f);
+
+    Vector2f vel_target = _p_pos_xy.update_all(_pos_target.x, _pos_target.y, comb_pos);
+    _pos_desired.xy() = _pos_target.xy() - _pos_offset.xy();
+
+    // Velocity Controller
+
+    vel_target *= ahrsControlScaleXY;
+
+    _vel_target.xy() = vel_target;
+    _vel_target.xy() += _vel_desired.xy() + _vel_offset.xy();
+
+    // Introduce random velocity disturbance
+    const Vector2f &curr_vel = _inav.get_velocity_xy_cms();
+    Vector2f comb_vel = curr_vel;
+    comb_vel.x += random_disturbance(-20.0f, 20.0f); // Random velocity disturbance in cm/s
+    comb_vel.y += random_disturbance(-20.0f, 20.0f);
+    _disturb_vel.x = random_disturbance(-10.0f, 10.0f);
+    _disturb_vel.y = random_disturbance(-10.0f, 10.0f);
+
+    Vector2f accel_target = _pid_vel_xy.update_all(_vel_target.xy(), comb_vel, _dt, _limit_vector.xy());
+
+    // Acceleration Controller
+
+    accel_target *= ahrsControlScaleXY;
+
+    _accel_target.xy() = accel_target;
+    _accel_target.xy() += _accel_desired.xy() + _accel_offset.xy();
+
+    // Introduce random acceleration disturbance
+    _accel_target.x += random_disturbance(-30.0f, 30.0f); // Random acceleration in cm/s²
+    _accel_target.y += random_disturbance(-30.0f, 30.0f);
+
+    // Limit acceleration using maximum lean angles
+    float angle_max = MIN(_attitude_control.get_althold_lean_angle_max_cd(), get_lean_angle_max_cd());
+    float accel_max = angle_to_accel(angle_max * 0.01) * 100;
+    _limit_vector.xy() = _accel_target.xy();
+
+    if (!limit_accel_xy(_vel_desired.xy(), _accel_target.xy(), accel_max)) {
+        _limit_vector.xy().zero();
+    } else {
+        const float accel_fwd_unlimited = _limit_vector.x * _ahrs.cos_yaw() + _limit_vector.y * _ahrs.sin_yaw();
+        const float pitch_target_unlimited = accel_to_angle(- MIN(accel_fwd_unlimited, accel_max) * 0.01f) * 100;
+        const float accel_fwd_limited = _accel_target.x * _ahrs.cos_yaw() + _accel_target.y * _ahrs.sin_yaw();
+        const float pitch_target_limited = accel_to_angle(- accel_fwd_limited * 0.01f) * 100;
+        _fwd_pitch_is_limited = is_negative(pitch_target_unlimited) && pitch_target_unlimited < pitch_target_limited;
+    }
+
+    // Update angle targets that will be passed to stabilize controller
+    accel_to_lean_angles(_accel_target.x, _accel_target.y, _roll_target, _pitch_target);
+    calculate_yaw_and_rate_yaw();
+
+    // Reset the disturbance from system ID mode to zero
     _disturb_pos.zero();
     _disturb_vel.zero();
 }
