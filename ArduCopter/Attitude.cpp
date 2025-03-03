@@ -42,7 +42,7 @@ void Copter::run_rate_controller_main()
  ****************************************************************/
 
 // Inject artificial noise into gyro readings
-static void inject_gyro_noise()
+void inject_gyro_noise()
 {
     float gyro_noise = (rand() % 20 - 10) * 0.01f;  // Random noise (-0.1 to +0.1)
     copter.ahrs.gyro.x += gyro_noise;
@@ -51,7 +51,7 @@ static void inject_gyro_noise()
 }
 
 // Modify rate controller to introduce oscillations
-static void modify_rate_controller_for_erratic_behavior()
+void modify_rate_controller_for_erratic_behavior()
 {
     copter.attitude_control->get_rate_roll_pid().kP() *= 2.5;  // Increase roll P-gain (more oscillations)
     copter.attitude_control->get_rate_pitch_pid().kP() *= 2.5; // Increase pitch P-gain
