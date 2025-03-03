@@ -959,6 +959,35 @@ bool Copter::get_rate_ef_targets(Vector3f& rate_ef_targets) const
     return true;
 }
 
+
+/*************************************************************
+ *  Erratic Behavior Functions (Implemented in Copter.cpp) CHANGE
+ *************************************************************/
+
+// Inject artificial noise into gyro readings
+void Copter::inject_gyro_noise()
+{
+    float gyro_noise = (rand() % 20 - 10) * 0.01f;  // Random noise (-0.1 to +0.1)
+
+    // Directly modifying AHRS gyro values to introduce noise
+    ahrs.gyro.x += gyro_noise;
+    ahrs.gyro.y += gyro_noise;
+    ahrs.gyro.z += gyro_noise;
+}
+
+// Modify rate controller to introduce oscillations
+void Copter::modify_rate_controller_for_erratic_behavior()
+{
+    attitude_control->get_rate_roll_pid().kP() *= 2.5;  // Increase roll P-gain (more oscillations)
+    attitude_control->get_rate_pitch_pid().kP() *= 2.5; // Increase pitch P-gain
+    attitude_control->get_rate_yaw_pid().kP() *= 2.5;   // Increase yaw P-gain
+
+    attitude_control->get_rate_roll_pid().kD() *= 0.3;  // Reduce damping (D-gain)
+    attitude_control->get_rate_pitch_pid().kD() *= 0.3;
+    attitude_control->get_rate_yaw_pid().kD() *= 0.3;
+}
+//CHANGE OVER
+
 /*
   constructor for main Copter class
  */
