@@ -980,8 +980,7 @@ void Copter::inject_gyro_noise()
     gyro_readings.y += gyro_noise_y;
     gyro_readings.z += gyro_noise_z;
 
-    // Set noisy values back (assuming there is a way to override them)
-    AP::ins().set_gyro(gyro_readings);  // Ensure `set_gyro()` exists in `AP_InertialSensor`
+    
 }
 
 
