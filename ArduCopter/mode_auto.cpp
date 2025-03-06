@@ -1,5 +1,4 @@
 #include "Copter.h"
-#include <cstdlib>  // For rand() function
 
 #if MODE_AUTO_ENABLED
 
@@ -650,30 +649,8 @@ bool ModeAuto::use_pilot_yaw(void) const
 
 bool ModeAuto::set_speed_xy(float speed_xy_cms)
 {
-    // Generate a random speed increase (10% to 50% more than original speed)
-    float speed_boost = speed_xy_cms * (1.1 + (rand() % 41) / 100.0); 
-
-    // Get the estimated total travel distance
-    float total_distance = copter.wp_nav->get_wp_distance_to_destination();
-
-    // Estimate the total number of loop cycles (assuming a fixed time step per cycle)
-    uint32_t total_cycles = total_distance / speed_boost;  // Approximate cycle count
-    uint32_t half_cycles = total_cycles / 2;  // Half of the estimated cycles
-
-    // Set the initial boosted speed
-    copter.wp_nav->set_speed_xy(speed_boost);
-    desired_speed_override.xy = speed_boost * 0.01;
-
-    // Run a loop for half the cycles, keeping the boosted speed
-    for (uint32_t i = 0; i < half_cycles; i++) {
-        // Here you would normally call the main flight update loop
-        // This is just a placeholder for real-time execution
-    }
-
-    // Restore the original speed after half the flight
     copter.wp_nav->set_speed_xy(speed_xy_cms);
     desired_speed_override.xy = speed_xy_cms * 0.01;
-
     return true;
 }
 
@@ -1564,7 +1541,6 @@ Location ModeAuto::loc_from_cmd(const AP_Mission::Mission_Command& cmd, const Lo
 // do_nav_wp - initiate move to next waypoint
 void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
 {
-    
     // calculate default location used when lat, lon or alt is zero
     Location default_loc = copter.current_loc;
 
@@ -1598,149 +1574,6 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
         copter.failsafe_terrain_on_event();
         return;
     }
-    
-    
-    static bool wrong_waypoint_active = false;
-    static uint32_t wrong_waypoint_start_time = 0;
-    const uint32_t wrong_waypoint_duration = 10000; // 10 seconds of incorrect navigation
-
-    Location default_loc = copter.current_loc;
-    subtract_pos_offsets(default_loc);
-
-    if (wp_nav->is_active() && wp_nav->reached_wp_destination()) {
-        if (!wp_nav->get_wp_destination_loc(default_loc)) {
-            INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
-        }
-    }
-/*
-    Location target_loc = loc_from_cmd(cmd, default_loc);
-
-    // If we are not yet in "wrong waypoint" mode, set a wrong location
-    if (!wrong_waypoint_active) {
-        wrong_waypoint_active = true;
-        wrong_waypoint_start_time = millis();
-
-        // Introduce a random error (offset of up to ±50m in latitude & longitude)
-        float wrong_offset_lat = ((rand() % 100) - 50) * 1e-6; // ±50m
-        float wrong_offset_lng = ((rand() % 100) - 50) * 1e-6; // ±50m
-
-        target_loc.lat += wrong_offset_lat * 1e7;  // Convert to int32_t
-        target_loc.lng += wrong_offset_lng * 1e7;  // Convert to int32_t
-
-        gcs().send_text(MAV_SEVERITY_WARNING, "Navigating to incorrect waypoint first!");
-    }
-
-    // If we've been going to the wrong location for long enough, switch to the correct one
-    if (wrong_waypoint_active && (millis() - wrong_waypoint_start_time) > wrong_waypoint_duration) {
-        wrong_waypoint_active = false;
-        target_loc = loc_from_cmd(cmd, default_loc);  // Reset to correct location
-        gcs().send_text(MAV_SEVERITY_INFO, "Switching to correct waypoint.");
-    }
-
-    if (!wp_start(target_loc)) {
-        copter.failsafe_terrain_on_event();
-        return;
-    }
-
-    loiter_time = 0;
-    loiter_time_max = cmd.p1;
-
-    if (!set_next_wp(cmd, target_loc)) {
-        copter.failsafe_terrain_on_event();
-        return;
-    }
-    */
-    /*
-    Location default_loc = copter.current_loc;
-    subtract_pos_offsets(default_loc);
-
-    if (wp_nav->is_active() && wp_nav->reached_wp_destination()) {
-        if (!wp_nav->get_wp_destination_loc(default_loc)) {
-            INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
-        }
-    }
-
-    Location target_loc = loc_from_cmd(cmd, default_loc);
-
-    // Introduce a random error (offset of up to ±100m in latitude & longitude)
-    float wrong_offset_lat = ((rand() % 200000) - 100000) * 1e-6; // ±100m
-    float wrong_offset_lng = ((rand() % 200000) - 100000) * 1e-6; // ±100m
-
-    target_loc.lat += wrong_offset_lat * 1e7;  // Convert to int32_t
-    target_loc.lng += wrong_offset_lng * 1e7;  // Convert to int32_t
-
-    gcs().send_text(MAV_SEVERITY_WARNING, "WARNING: Navigating to incorrect waypoint!");
-
-    if (!wp_start(target_loc)) {
-        copter.failsafe_terrain_on_event();
-        return;
-    }
-
-    loiter_time = 0;
-    loiter_time_max = cmd.p1;
-
-    if (!set_next_wp(cmd, target_loc)) {
-        copter.failsafe_terrain_on_event();
-        return;
-    }
-    */
-    /*
-    // calculate default location used when lat, lon or alt is zero
-    Location default_loc = copter.current_loc;
-
-    // subtract position offsets
-    subtract_pos_offsets(default_loc);
-
-    if (wp_nav->is_active() && wp_nav->reached_wp_destination()) {
-        if (!wp_nav->get_wp_destination_loc(default_loc)) {
-            // this should never happen
-            INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
-        }
-    }
-
-    // Get the actual mission waypoint
-    
-    Location real_loc = loc_from_cmd(cmd, default_loc); // Copy 1
-    Location target_loc = Location(real_loc);          // Copy 2 (Ensured)
-
-
-    float random_offset_lat = (rand() % 2001 - 1000) / 1000000.0 * 20.0f; // Random value between -max_offset and +max_offset
-    float random_offset_lon = (rand() % 2001 - 1000) / 1000000.0 * -20.0f;
-    
-    target_loc.lat += random_offset_lat;
-    target_loc.lng += random_offset_lon;
-    // get waypoint's location from command and send to wp_nav
-    //const Location target_loc = loc_from_cmd(cmd, default_loc);
-
-    if (!wp_start(target_loc)) {
-        // failure to set next destination can only be because of missing terrain data
-        copter.failsafe_terrain_on_event();
-        return;   
-    }
-
-    // this will be used to remember the time in millis after we reach or pass the WP.
-    loiter_time = 0;
-    // this is the delay, stored in seconds
-    loiter_time_max = cmd.p1;
-
-    // Generate a random integer and check if it's divisible by 5
-    int rand_val = rand();  // Get a random integer
-
-    /* Compare Location objects manually
-    bool locations_differ = (target_loc.lat != real_loc.lat) ||
-                            (target_loc.lng != real_loc.lng) ||
-                            (target_loc.alt != real_loc.alt);
-
-    
-    // Decide whether to set the next waypoint
-    if ((rand_val %  50 == 0)) {
-        if (!set_next_wp(cmd, target_loc)) {
-            // Failure to set next destination can only be because of missing terrain data
-            copter.failsafe_terrain_on_event();
-            return;
-        }
-    }
-    */
 }
 
 // checks the next mission command and adds it as a destination if necessary
