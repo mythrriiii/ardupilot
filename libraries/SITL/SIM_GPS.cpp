@@ -36,6 +36,8 @@
 std::random_device rd;
 std::mt19937 gen(rd());
 std::normal_distribution<double> small_noise(0.00001, 0.00002); // Small noise for shakiness
+std::normal_distribution<double> large_noise(0.001, 0.003); // Large noise for deviation
+
 
 
 namespace SITL {
@@ -495,8 +497,8 @@ void GPS::update()
 
     //CHANGE
     
-    //bool large = true;
-    bool large = false;
+    bool large = true;
+    //bool large = false;
     // Apply large noise to GPS coordinates when deviation mode is enabled
     if (large) {  // Use a condition to activate deviation mode
         d.latitude = latitude + large_noise(gen);
