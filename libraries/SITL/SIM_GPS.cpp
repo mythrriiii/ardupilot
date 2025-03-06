@@ -32,12 +32,18 @@
 
 #include <GCS_MAVLink/GCS.h>
 
+//CHANGE
+
 // Define random noise generator
 std::random_device rd;
 std::mt19937 gen(rd());
 std::normal_distribution<double> small_noise(0.00002, 0.00002); // Small noise for shakiness
 std::normal_distribution<double> large_noise(0.00001, 0.00004); // Large noise for deviation
+// Define a counter to delay noise injection
+static uint32_t noise_counter = 0;  // Counts iterations at 100Hz
+#define NOISE_START_TIME 1000      
 
+//CHANGE END
 
 
 namespace SITL {
@@ -498,17 +504,21 @@ void GPS::update()
     //CHANGE
     
     bool large = true;
-    //bool large = false;
-    // Apply large noise to GPS coordinates when deviation mode is enabled
-    if (large) {  // Use a condition to activate deviation mode
-        d.latitude = latitude + large_noise(gen);
-        d.longitude = longitude + large_noise(gen);
+
+    if (noise_counter < NOISE_START_TIME) {
+        noise_counter++;
     } else {
+        //bool large = false;
+        // Apply large noise to GPS coordinates when deviation mode is enabled
+        if (large) {  // Use a condition to activate deviation mode
+            d.latitude = latitude + large_noise(gen);
+            d.longitude = longitude + large_noise(gen);
+        }else {
         // Apply small noise to GPS coordinates
         d.latitude = latitude + small_noise(gen);
         d.longitude = longitude + small_noise(gen);
-    }   
-    
+        }   
+    }
     //CHANGE END
 
     // add an altitude error controlled by a slow sine wave
