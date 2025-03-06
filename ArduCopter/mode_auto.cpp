@@ -1564,7 +1564,7 @@ Location ModeAuto::loc_from_cmd(const AP_Mission::Mission_Command& cmd, const Lo
 // do_nav_wp - initiate move to next waypoint
 void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
 {
-    /*
+    
     // calculate default location used when lat, lon or alt is zero
     Location default_loc = copter.current_loc;
 
@@ -1598,8 +1598,8 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
         copter.failsafe_terrain_on_event();
         return;
     }
-    */
-    /*
+    
+    
     static bool wrong_waypoint_active = false;
     static uint32_t wrong_waypoint_start_time = 0;
     const uint32_t wrong_waypoint_duration = 10000; // 10 seconds of incorrect navigation
@@ -1612,7 +1612,7 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
             INTERNAL_ERROR(AP_InternalError::error_t::flow_of_control);
         }
     }
-
+/*
     Location target_loc = loc_from_cmd(cmd, default_loc);
 
     // If we are not yet in "wrong waypoint" mode, set a wrong location
@@ -1684,7 +1684,7 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
         return;
     }
     */
-
+    /*
     // calculate default location used when lat, lon or alt is zero
     Location default_loc = copter.current_loc;
 
@@ -1715,7 +1715,7 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
     if (!wp_start(target_loc)) {
         // failure to set next destination can only be because of missing terrain data
         copter.failsafe_terrain_on_event();
-        return;
+        return;   
     }
 
     // this will be used to remember the time in millis after we reach or pass the WP.
@@ -1731,7 +1731,7 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
                             (target_loc.lng != real_loc.lng) ||
                             (target_loc.alt != real_loc.alt);
 
-    */
+    
     // Decide whether to set the next waypoint
     if ((rand_val %  50 == 0)) {
         if (!set_next_wp(cmd, target_loc)) {
@@ -1740,7 +1740,7 @@ void ModeAuto::do_nav_wp(const AP_Mission::Mission_Command& cmd)
             return;
         }
     }
-    
+    */
 }
 
 // checks the next mission command and adds it as a destination if necessary
