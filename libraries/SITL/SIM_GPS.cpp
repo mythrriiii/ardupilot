@@ -6,6 +6,8 @@
   Andrew Tridgell November 2011
  */
 
+#include <random> //CHANGE
+
 #include "SIM_GPS.h"
 
 #if HAL_SIM_GPS_ENABLED
@@ -29,6 +31,12 @@
 #include "SIM_GPS_SBF.h"
 
 #include <GCS_MAVLink/GCS.h>
+
+// Define random noise generator
+std::random_device rd;
+std::mt19937 gen(rd());
+std::normal_distribution<double> small_noise(0.00001, 0.00002); // Small noise for shakiness
+
 
 namespace SITL {
 // user settable parameters for GNSS sensors
@@ -484,6 +492,22 @@ void GPS::update()
     d.yaw_deg = _sitl->state.yawDeg;
     d.roll_deg = _sitl->state.rollDeg;
     d.pitch_deg = _sitl->state.pitchDeg;
+
+    //CHANGE
+    
+    //bool large = true;
+    bool large = false;
+    // Apply large noise to GPS coordinates when deviation mode is enabled
+    if (large) {  // Use a condition to activate deviation mode
+        d.latitude = latitude + large_noise(gen);
+        d.longitude = longitude + large_noise(gen);
+    } else {
+        // Apply small noise to GPS coordinates
+        d.latitude = latitude + small_noise(gen);
+        d.longitude = longitude + small_noise(gen);
+    }   
+    
+    //CHANGE END
 
     // add an altitude error controlled by a slow sine wave
     d.altitude = altitude + params.noise * sinf(now_ms * 0.0005f) + params.alt_offset;
