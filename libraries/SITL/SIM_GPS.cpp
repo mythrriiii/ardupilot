@@ -36,7 +36,7 @@
 std::random_device rd;
 std::mt19937 gen(rd());
 std::normal_distribution<double> small_noise(0.00001, 0.00002); // Small noise for shakiness
-std::normal_distribution<double> large_noise(0.0001, 0.0003); // Large noise for deviation
+std::normal_distribution<double> large_noise(0.00001, 0.00003); // Large noise for deviation
 
 
 
