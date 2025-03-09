@@ -504,22 +504,21 @@ void GPS::update()
 
     //CHANGE
     
-    bool large = true;
+    bool large = true; // change to false when using small noise (part a) and true for large (part b)
 
-    if (noise_counter < NOISE_START_TIME) {
-        noise_counter++;
-    } else {
-        //bool large = false;
-        // Apply large noise to GPS coordinates when deviation mode is enabled
-        if (large) {  // Use a condition to activate deviation mode
+    if (large) {
+        if (noise_counter < NOISE_START_TIME) {  // Use a condition to activate deviation mode for large
+            noise_counter++;
+        } else {
             d.latitude = latitude + large_noise(gen);
             d.longitude = longitude + large_noise(gen);
-        }else {
-        // Apply small noise to GPS coordinates
+        }     
+    } else {
         d.latitude = latitude + small_noise(gen);
         d.longitude = longitude + small_noise(gen);
-        }   
-    }
+    }   
+    
+
     //CHANGE END
 
     // add an altitude error controlled by a slow sine wave
