@@ -41,7 +41,7 @@ std::normal_distribution<double> small_noise(0.00002, 0.00002); // Small noise f
 std::normal_distribution<double> large_noise(0.0005, 0.0001); // Large noise for deviation
 // Define a counter to delay noise injection
 static uint32_t noise_counter = 0;  // Counts iterations at 100Hz
-#define NOISE_START_TIME 400      
+#define NOISE_START_TIME 900      
 
 //CHANGE END
 
