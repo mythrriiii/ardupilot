@@ -38,10 +38,10 @@
 std::random_device rd;
 std::mt19937 gen(rd());
 std::uniform_real_distribution<double> small_noise(0.00001, 0.00005); // Small noise strictly between 0.00001 and 0.00005
-std::uniform_real_distribution<double> large_noise(0.0001, 0.0005); // Large noise strictly between 0.0001 and 0.0005
+std::uniform_real_distribution<double> large_noise(0.00001, 0.00005); // Large noise strictly between 0.0001 and 0.0005
 // Define a counter to delay noise injection
-static uint32_t noise_counter = 0;  // Counts iterations at 100Hz
-#define NOISE_START_TIME 750      
+static uint32_t noise_counter = 1;  // Counts iterations at 100Hz
+#define NOISE_START_TIME 0      
 
 //CHANGE END
 
