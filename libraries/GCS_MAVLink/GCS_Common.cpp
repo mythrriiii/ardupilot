@@ -6209,9 +6209,22 @@ bool GCS_MAVLINK::try_send_message(const enum ap_message id)
         break;
 
     case MSG_ATTITUDE_QUATERNION:
-        CHECK_PAYLOAD_SIZE(ATTITUDE_QUATERNION);
-        send_attitude_quaternion();
+        //CHANGE
+        int8_t mode = 0;
+        AP::param().get("ATTITUDE_MODE", &mode);
+
+        if (mode == 0 && id == MSG_ATTITUDE) {
+            CHECK_PAYLOAD_SIZE(ATTITUDE);
+            send_attitude();
+        } else if (mode == 1 && id == MSG_ATTITUDE_QUATERNION) {
+            CHECK_PAYLOAD_SIZE(ATTITUDE_QUATERNION);
+            send_attitude_quaternion();
+        }
         break;
+        //CHECK_PAYLOAD_SIZE(ATTITUDE_QUATERNION);
+        //send_attitude_quaternion();
+        //break;
+        //ENDCHANGE
 #endif
 
     case MSG_NEXT_PARAM:
