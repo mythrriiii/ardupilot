@@ -5873,8 +5873,9 @@ void GCS_MAVLINK::send_attitude() const
         omega.x,
         omega.y,
         omega.z);
-    //CHANGE
+    //CHANGED: send out a message to the console. Used to verify that NED used.
     gcs().send_text(MAV_SEVERITY_INFO, "Sending Euler angles (ATTITUDE)");
+    //ENDCHANGE
 #endif
 }
 
@@ -5900,8 +5901,9 @@ void GCS_MAVLINK::send_attitude_quaternion() const
         omega.z, // yawspeed
         repr_offseq_q
         );
-    //CHANGE
+    //CHANGE: send out a message to the console. Used to verify that Quaternion used.
     gcs().send_text(MAV_SEVERITY_INFO, "Sending Quaternion (ATTITUDE_QUATERNION)");
+    //ENDCHANGE
 #endif
 }
 
@@ -6207,10 +6209,10 @@ bool GCS_MAVLINK::try_send_message(const enum ap_message id)
     switch(id) {
 
 #if AP_AHRS_ENABLED
+        //CHANGED: changed the case statements to hardcode NED or Quarternion for navigation. Also prints out a message on the console to verify.
     case MSG_ATTITUDE:
     case MSG_ATTITUDE_QUATERNION: {
         int8_t mode = 1;
-        //AP::param().get("ATTITUDE_MODE", &mode);  // get value from param system
 
         if (mode == 0 ) {
             CHECK_PAYLOAD_SIZE(ATTITUDE);
@@ -6228,14 +6230,13 @@ bool GCS_MAVLINK::try_send_message(const enum ap_message id)
 //        break;
 //
 //    case MSG_ATTITUDE_QUATERNION:
-//        //CHANGE
-        
-//        break;
         //CHECK_PAYLOAD_SIZE(ATTITUDE_QUATERNION);
         //send_attitude_quaternion();
         //break;
-        //ENDCHANGE
+       
 //#endif
+
+        //ENDCHANGE
 
     case MSG_NEXT_PARAM:
         CHECK_PAYLOAD_SIZE(PARAM_VALUE);
