@@ -37,10 +37,6 @@ const AP_Param::Info Copter::var_info[] = {
     // @User: Advanced
     GSCALAR(format_version, "FORMAT_VERSION",   0),
 
-//CHANGE
-    GSCALAR(attitude_mode, "ATTITUDE_MODE", 0) // 0 = Euler, 1 = Quaternion
-//ENDCHANGE
-
     // @Param: SYSID_THISMAV
     // @DisplayName: MAVLink system ID of this vehicle
     // @Description: Allows setting an individual MAVLink system id for this vehicle to distinguish it from others on the same network
