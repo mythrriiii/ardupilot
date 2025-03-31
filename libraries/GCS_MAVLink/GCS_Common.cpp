@@ -6211,7 +6211,7 @@ bool GCS_MAVLINK::try_send_message(const enum ap_message id)
     case MSG_ATTITUDE_QUATERNION:
         //CHANGE
         int8_t mode = 0;
-        AP::param().get("ATTITUDE_MODE", &mode);
+        AP::param()->get("ATTITUDE_MODE", &mode);
 
         if (mode == 0 && id == MSG_ATTITUDE) {
             CHECK_PAYLOAD_SIZE(ATTITUDE);
