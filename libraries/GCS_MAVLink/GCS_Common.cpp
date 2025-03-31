@@ -6203,14 +6203,19 @@ bool GCS_MAVLINK::try_send_message(const enum ap_message id)
     switch(id) {
 
 #if AP_AHRS_ENABLED
-    int8_t mode = 0;
+    case MSG_ATTITUDE:
+    case MSG_ATTITUDE_QUATERNION: {
+        int8_t mode = 0;
+        //AP::param().get("ATTITUDE_MODE", &mode);  // get value from param system
 
-    if (mode == 0) {
-        CHECK_PAYLOAD_SIZE(ATTITUDE);
-        send_attitude();
-    } else if (mode == 1) {
-        CHECK_PAYLOAD_SIZE(ATTITUDE_QUATERNION);
-        send_attitude_quaternion();
+        if (mode == 0 ) {
+            CHECK_PAYLOAD_SIZE(ATTITUDE);
+            send_attitude();
+        } else if (mode == 1 ) {
+            CHECK_PAYLOAD_SIZE(ATTITUDE_QUATERNION);
+            send_attitude_quaternion();
+        }
+        break;
     }    
 #endif
 //    case MSG_ATTITUDE:
