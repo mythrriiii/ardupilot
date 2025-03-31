@@ -26,7 +26,6 @@ public:
     // by newer code.
     //
     static const uint16_t        k_format_version = 120;
-    int8_t attitude_mode;
 
 
     // Parameter identities.
