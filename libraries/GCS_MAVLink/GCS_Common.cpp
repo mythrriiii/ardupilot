@@ -6209,7 +6209,7 @@ bool GCS_MAVLINK::try_send_message(const enum ap_message id)
 #if AP_AHRS_ENABLED
     case MSG_ATTITUDE:
     case MSG_ATTITUDE_QUATERNION: {
-        int8_t mode = 0;
+        int8_t mode = 1;
         //AP::param().get("ATTITUDE_MODE", &mode);  // get value from param system
 
         if (mode == 0 ) {
