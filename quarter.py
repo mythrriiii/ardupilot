@@ -12,11 +12,11 @@ start_quat = yaw_to_quaternion(0)
 # 2. Hovering 10m South at 15mph: same orientation (still facing North)
 hover_quat = yaw_to_quaternion(0)
 
-# 3. Turn to the East (yaw = -90 degrees because rotation is clockwise)
-turn_quat = yaw_to_quaternion(-90)
+# 3. Turn to the East (yaw = 90 degrees)
+turn_quat = yaw_to_quaternion(90)
 
 # 4. Fly East at 15mph for 50m: maintain same orientation (East)
-east_quat = yaw_to_quaternion(-90)
+east_quat = yaw_to_quaternion(90)
 
 # Display quaternions
 print("Start quaternion (facing North):", start_quat)
