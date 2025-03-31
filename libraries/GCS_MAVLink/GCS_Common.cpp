@@ -5873,6 +5873,8 @@ void GCS_MAVLINK::send_attitude() const
         omega.x,
         omega.y,
         omega.z);
+    //CHANGE
+    gcs().send_text(MAV_SEVERITY_INFO, "Sending Euler angles (ATTITUDE)");
 #endif
 }
 
@@ -5898,6 +5900,8 @@ void GCS_MAVLINK::send_attitude_quaternion() const
         omega.z, // yawspeed
         repr_offseq_q
         );
+    //CHANGE
+    gcs().send_text(MAV_SEVERITY_INFO, "Sending Quaternion (ATTITUDE_QUATERNION)");
 #endif
 }
 
