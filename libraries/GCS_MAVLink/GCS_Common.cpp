@@ -6212,7 +6212,7 @@ bool GCS_MAVLINK::try_send_message(const enum ap_message id)
         //CHANGED: changed the case statements to hardcode NED or Quarternion for navigation. Also prints out a message on the console to verify.
     case MSG_ATTITUDE:
     case MSG_ATTITUDE_QUATERNION: {
-        int8_t mode = 0;
+        int8_t mode = 1;
 
         if (mode == 0 ) {
             CHECK_PAYLOAD_SIZE(ATTITUDE);
